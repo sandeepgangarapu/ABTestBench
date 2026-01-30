@@ -1,0 +1,86 @@
+questions:
+  - id: power_001
+    category: power_analysis
+    difficulty: easy
+    tags: ["basic", "two-sample", "proportion"]
+    question: |
+      An A/B test for a website button change currently has a 5% click-through rate
+      (control). You want to detect a 20% relative improvement (to 6% CTR) with 80%
+      power and a 5% significance level. Using a two-proportion z-test, what is the
+      minimum sample size needed per group?
+    expected_answer:
+      type: numeric
+      value: 3842
+      tolerance: 100
+      tolerance_type: absolute
+    evaluation:
+      method: hybrid
+      numeric_weight: 0.7
+      explanation_weight: 0.3
+      key_concepts:
+        - "effect size"
+        - "statistical power"
+        - "two-proportion test"
+      rubric: |
+        Award full explanation credit if the response:
+        - Correctly identifies this as a two-proportion z-test
+        - Shows the formula or methodology used
+        - Explains the relationship between sample size and power
+    requires_code: true
+
+  - id: power_002
+    category: power_analysis
+    difficulty: medium
+    tags: ["retrospective", "continuous"]
+    question: |
+      You ran an A/B test with 5,000 users per group. The control group had a mean
+      revenue of $45 with standard deviation $30. The treatment showed a mean of $47.
+      What was the statistical power of this test to detect this $2 difference at
+      α = 0.05?
+    expected_answer:
+      type: numeric
+      value: 0.516
+      tolerance: 0.05
+      tolerance_type: absolute
+    evaluation:
+      method: hybrid
+      numeric_weight: 0.6
+      explanation_weight: 0.4
+      key_concepts:
+        - "post-hoc power analysis"
+        - "effect size (Cohen's d)"
+        - "t-test power"
+      rubric: |
+        Award full credit if:
+        - Correctly calculates Cohen's d ≈ 0.067
+        - Uses appropriate power analysis method
+        - Notes limitations of post-hoc power analysis
+    requires_code: true
+
+  - id: power_003
+    category: power_analysis
+    difficulty: hard
+    tags: ["design", "mde"]
+    question: |
+      You're planning an A/B test with a baseline conversion rate of 12%. You have
+      capacity for 50,000 users per group. What is the minimum detectable effect (MDE)
+      as a relative percentage improvement, with 80% power at α = 0.05?
+    expected_answer:
+      type: numeric
+      value: 5.8
+      tolerance: 0.5
+      tolerance_type: absolute
+    evaluation:
+      method: hybrid
+      numeric_weight: 0.7
+      explanation_weight: 0.3
+      key_concepts:
+        - "minimum detectable effect"
+        - "inverse power calculation"
+        - "relative vs absolute effect"
+      rubric: |
+        Credit for:
+        - Correctly solving for effect size given fixed n
+        - Converting absolute difference to relative percentage
+        - Clear explanation of MDE concept
+    requires_code: true

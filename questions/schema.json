@@ -1,0 +1,128 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://abtestbench.dev/question.schema.json",
+  "title": "ABTestBench Question",
+  "type": "object",
+  "required": ["id", "category", "difficulty", "question", "expected_answer", "evaluation"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$",
+      "description": "Unique question identifier"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "power_analysis",
+        "sample_size",
+        "significance_testing",
+        "confidence_intervals",
+        "effect_size"
+      ]
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": ["easy", "medium", "hard", "expert"]
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Additional categorization tags"
+    },
+    "question": {
+      "type": "string",
+      "description": "The question text presented to the LLM"
+    },
+    "context": {
+      "type": "string",
+      "description": "Optional additional context or data"
+    },
+    "expected_answer": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "numeric"},
+            "value": {"type": "number"},
+            "tolerance": {"type": "number", "default": 0.01},
+            "tolerance_type": {"enum": ["absolute", "relative"], "default": "relative"}
+          },
+          "required": ["type", "value"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "numeric_range"},
+            "min": {"type": "number"},
+            "max": {"type": "number"}
+          },
+          "required": ["type", "min", "max"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "categorical"},
+            "value": {"type": "string"},
+            "alternatives": {"type": "array", "items": {"type": "string"}}
+          },
+          "required": ["type", "value"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "boolean"},
+            "value": {"type": "boolean"}
+          },
+          "required": ["type", "value"]
+        }
+      ]
+    },
+    "evaluation": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": ["exact_match", "llm_judge", "hybrid"]
+        },
+        "numeric_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.7
+        },
+        "explanation_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.3
+        },
+        "rubric": {
+          "type": "string",
+          "description": "Grading rubric for LLM-as-judge"
+        },
+        "key_concepts": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Key concepts that should appear in explanation"
+        }
+      },
+      "required": ["method"]
+    },
+    "hints": {
+      "type": "object",
+      "properties": {
+        "formulas": {"type": "array", "items": {"type": "string"}},
+        "approach": {"type": "string"}
+      }
+    },
+    "source": {
+      "type": "string",
+      "description": "Reference or source of the question"
+    },
+    "requires_code": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether solving requires code execution"
+    }
+  }
+}

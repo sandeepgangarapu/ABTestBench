@@ -1,0 +1,89 @@
+questions:
+  - id: ci_001
+    category: confidence_intervals
+    difficulty: easy
+    tags: ["proportion", "wald", "basic"]
+    question: |
+      An A/B test treatment group had 150 conversions out of 2,000 users. Calculate
+      the 95% confidence interval for the true conversion rate using the Wald method.
+
+      Provide the lower and upper bounds of the interval.
+    expected_answer:
+      type: numeric_range
+      min: 0.059
+      max: 0.091
+    evaluation:
+      method: hybrid
+      numeric_weight: 0.6
+      explanation_weight: 0.4
+      key_concepts:
+        - "Wald interval"
+        - "standard error of proportion"
+        - "z-score for 95% CI"
+      rubric: |
+        Credit for:
+        - Calculating point estimate p = 0.075
+        - Correct standard error: sqrt(p(1-p)/n)
+        - Using z = 1.96 for 95% CI
+        - Final interval approximately [0.063, 0.087]
+    requires_code: false
+
+  - id: ci_002
+    category: confidence_intervals
+    difficulty: medium
+    tags: ["difference", "two-sample", "means"]
+    question: |
+      Two groups in an A/B test show:
+      - Control: n=5,000, mean=$42.50, std=$15.00
+      - Treatment: n=5,000, mean=$44.00, std=$16.00
+
+      Calculate the 95% confidence interval for the difference in means
+      (treatment - control).
+    expected_answer:
+      type: numeric_range
+      min: 0.89
+      max: 2.11
+    evaluation:
+      method: hybrid
+      numeric_weight: 0.7
+      explanation_weight: 0.3
+      key_concepts:
+        - "difference in means"
+        - "standard error of difference"
+        - "two-sample interval"
+      rubric: |
+        Award credit for:
+        - Correct SE calculation: sqrt(s1²/n1 + s2²/n2)
+        - Using appropriate critical value (z ≈ 1.96 or t)
+        - Final interval approximately [0.89, 2.11]
+    requires_code: true
+
+  - id: ci_003
+    category: confidence_intervals
+    difficulty: hard
+    tags: ["ratio", "relative_risk"]
+    question: |
+      In an A/B test:
+      - Control: 5,000 users, 200 conversions (4.0%)
+      - Treatment: 5,000 users, 250 conversions (5.0%)
+
+      Calculate the 95% confidence interval for the relative risk (treatment/control).
+    expected_answer:
+      type: numeric_range
+      min: 1.06
+      max: 1.47
+    evaluation:
+      method: hybrid
+      numeric_weight: 0.6
+      explanation_weight: 0.4
+      key_concepts:
+        - "relative risk"
+        - "log transformation"
+        - "delta method"
+      rubric: |
+        Credit for:
+        - Calculating RR = 1.25
+        - Using log transformation for CI
+        - Correct standard error on log scale
+        - Final interval approximately [1.06, 1.47]
+    requires_code: true
