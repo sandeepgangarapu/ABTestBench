@@ -1,0 +1,25 @@
+id = "sig_002"
+topic = "significance_testing"
+difficulty = "medium"
+requires_code = true
+
+question = """
+You're running 5 simultaneous A/B tests across different features. Each test
+uses α = 0.05.
+
+1. If there are no true effects, what is the probability of observing at
+   least one false positive?
+2. What should the per-test α be if you want to maintain an overall
+   family-wise error rate of 0.05 using Bonferroni correction?
+
+Provide the Bonferroni-corrected α as your final answer.
+"""
+
+[expected_answer]
+type = "numeric"
+value = 0.01
+tolerance = 0.001
+tolerance_type = "absolute"
+
+[evaluation]
+method = "exact_match"

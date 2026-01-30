@@ -1,0 +1,20 @@
+id = "sample_size_002"
+topic = "sample_size"
+difficulty = "medium"
+requires_code = true
+
+question = """
+You're running an A/B test comparing two landing page designs. The current
+page has an 8% conversion rate. You want to detect a 25% relative increase
+(to 10%) with 80% power and 5% significance level (two-tailed). What sample
+size do you need per variant?
+"""
+
+[expected_answer]
+type = "numeric"
+value = 1567
+tolerance = 100
+tolerance_type = "absolute"
+
+[evaluation]
+method = "exact_match"

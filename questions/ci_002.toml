@@ -1,0 +1,24 @@
+id = "ci_002"
+topic = "confidence_intervals"
+difficulty = "medium"
+requires_code = true
+
+question = """
+Two groups in an A/B test show:
+- Control: n=5,000, mean=$42.50, std=$15.00
+- Treatment: n=5,000, mean=$44.00, std=$16.00
+
+Calculate the 95% confidence interval for the difference in means
+(treatment - control).
+
+What is the width of this confidence interval (upper bound minus lower bound)?
+"""
+
+[expected_answer]
+type = "numeric"
+value = 1.22
+tolerance = 0.05
+tolerance_type = "absolute"
+
+[evaluation]
+method = "exact_match"

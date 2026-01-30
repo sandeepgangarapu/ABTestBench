@@ -26,8 +26,8 @@ def parse_args():
         help="Models to test (e.g., anthropic/claude-3.5-sonnet openai/gpt-4o)",
     )
     parser.add_argument(
-        "--categories",
-        "-c",
+        "--topics",
+        "-t",
         nargs="+",
         choices=[
             "power_analysis",
@@ -36,7 +36,7 @@ def parse_args():
             "confidence_intervals",
             "effect_size",
         ],
-        help="Filter to specific categories",
+        help="Filter to specific topics",
     )
     parser.add_argument(
         "--difficulties",
@@ -85,9 +85,9 @@ def list_questions():
     print("\nQuestion Bank Statistics:")
     print(f"  Total questions: {stats['total']}")
 
-    print("\nBy Category:")
-    for cat, count in sorted(stats["by_category"].items()):
-        print(f"  {cat}: {count}")
+    print("\nBy Topic:")
+    for topic, count in sorted(stats["by_topic"].items()):
+        print(f"  {topic}: {count}")
 
     print("\nBy Difficulty:")
     for diff in ["easy", "medium", "hard", "expert"]:
@@ -97,7 +97,7 @@ def list_questions():
     print("\nQuestions:")
     for q in loader.iter_questions():
         code_flag = "[code]" if q.requires_code else ""
-        print(f"  {q.id} ({q.category.value}, {q.difficulty.value}) {code_flag}")
+        print(f"  {q.id} ({q.topic.value}, {q.difficulty.value}) {code_flag}")
 
 
 async def main():
@@ -112,8 +112,8 @@ async def main():
 
     if args.models:
         config.models = args.models
-    if args.categories:
-        config.categories = args.categories
+    if args.topics:
+        config.topics = args.topics
     if args.difficulties:
         config.difficulties = args.difficulties
 
@@ -123,7 +123,7 @@ async def main():
     try:
         result = await runner.run(
             models=args.models,
-            categories=args.categories,
+            topics=args.topics,
             difficulties=args.difficulties,
             question_ids=args.questions,
         )

@@ -1,0 +1,20 @@
+id = "power_002"
+topic = "power_analysis"
+difficulty = "medium"
+requires_code = true
+
+question = """
+You ran an A/B test with 5,000 users per group. The control group had a mean
+revenue of $45 with standard deviation $30. The treatment showed a mean of $47.
+What was the statistical power of this test to detect this $2 difference at
+α = 0.05?
+"""
+
+[expected_answer]
+type = "numeric"
+value = 0.516
+tolerance = 0.05
+tolerance_type = "absolute"
+
+[evaluation]
+method = "exact_match"

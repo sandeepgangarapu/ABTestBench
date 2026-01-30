@@ -7,11 +7,13 @@ from typing import Optional
 
 from ..config import BenchmarkConfig
 from ..evaluation.composite import CompositeEvaluator
-from ..models.question import Question, QuestionSet
+from ..models.question import Question, QuestionSet, NumericAnswer
 from ..models.response import LLMResponse
 from ..models.result import BenchmarkResult, QuestionResult
-from ..providers.openrouter import OpenRouterProvider, ToolExecutor
-from ..sandbox.docker_runner import PYTHON_TOOL_DEFINITION, DockerSandbox, LocalSandbox, DOCKER_AVAILABLE
+from ..providers.openrouter import OpenRouterProvider
+from ..sandbox.docker_runner import DockerSandbox, LocalSandbox, DOCKER_AVAILABLE
+from ..models.response import ToolResult
+from .code_extractor import CodeExtractor
 from .loader import QuestionLoader
 
 
@@ -35,26 +37,19 @@ class BenchmarkRunner:
             print("Docker not available, using local execution")
             self.sandbox = LocalSandbox(self.config.sandbox)
 
-        self.evaluator = CompositeEvaluator(
-            provider=self.provider,
-            judge_model=self.config.evaluation.judge_model,
-        )
-
-        # Set up tool executor
-        self.tool_executor = ToolExecutor()
-        self.tool_executor.register("execute_python", self.sandbox)
+        self.evaluator = CompositeEvaluator()
 
     async def run(
         self,
         models: Optional[list[str]] = None,
-        categories: Optional[list[str]] = None,
+        topics: Optional[list[str]] = None,
         difficulties: Optional[list[str]] = None,
         question_ids: Optional[list[str]] = None,
     ) -> BenchmarkResult:
         """Run the complete benchmark."""
         # Load questions
         questions = self.loader.load_all(
-            categories=categories or self.config.categories,
+            topics=topics or self.config.topics,
             difficulties=difficulties or self.config.difficulties,
         )
 
@@ -109,6 +104,8 @@ class BenchmarkRunner:
 
             if result.success and result.evaluation:
                 print(f"Score: {result.evaluation.overall_score:.2f}")
+                # Log expected vs model answer for comparison
+                self._log_answer_comparison(question, result)
             else:
                 print(f"Error: {result.error}")
 
@@ -129,21 +126,26 @@ class BenchmarkRunner:
         start_time = datetime.utcnow()
 
         try:
-            # Get LLM response with tool use if needed
+            # Get LLM response (single-shot, no tool loop)
+            response = await self.provider.complete(
+                messages=messages,
+                model=model,
+                system_prompt=system_prompt,
+            )
+
+            # If requires_code, extract and execute Python code
             if question.requires_code:
-                response = await self.provider.complete_with_tool_loop(
-                    messages=messages,
-                    model=model,
-                    tools=[PYTHON_TOOL_DEFINITION],
-                    tool_executor=self.tool_executor,
-                    system_prompt=system_prompt,
-                )
-            else:
-                response = await self.provider.complete(
-                    messages=messages,
-                    model=model,
-                    system_prompt=system_prompt,
-                )
+                code = CodeExtractor.extract(response.content)
+                if code:
+                    result = await self.sandbox.execute(code)
+                    # Attach result for evaluation
+                    response.all_tool_results = [ToolResult(
+                        tool_name="code_execution",
+                        tool_input={"code": code},
+                        output=result.output,
+                        success=result.success,
+                        error=result.error,
+                    )]
 
             elapsed_time = (datetime.utcnow() - start_time).total_seconds()
 
@@ -155,7 +157,7 @@ class BenchmarkRunner:
 
             return QuestionResult(
                 question_id=question.id,
-                category=question.category.value,
+                topic=question.topic.value,
                 difficulty=question.difficulty.value,
                 success=True,
                 response=response.model_dump(),
@@ -167,7 +169,7 @@ class BenchmarkRunner:
             elapsed_time = (datetime.utcnow() - start_time).total_seconds()
             return QuestionResult(
                 question_id=question.id,
-                category=question.category.value,
+                topic=question.topic.value,
                 difficulty=question.difficulty.value,
                 success=False,
                 error=str(e),
@@ -190,12 +192,28 @@ Use the execute_python tool for calculations. State your final answer clearly.""
             text += f"\n\nAdditional context:\n{question.context}"
         return text
 
+    def _log_answer_comparison(self, question: Question, result) -> None:
+        """Log expected vs model answer for comparison."""
+        expected = question.expected_answer
+        eval_result = result.evaluation
+
+        if isinstance(expected, NumericAnswer):
+            expected_val = expected.value
+            model_val = None
+            if eval_result.numeric_evaluation:
+                model_val = eval_result.numeric_evaluation.extracted_value
+            print(f"    Expected: {expected_val}, Model: {model_val}")
+        else:
+            # Categorical or Boolean
+            expected_val = expected.value
+            print(f"    Expected: {expected_val}")
+
 
 async def run_benchmark(
     models: Optional[list[str]] = None,
-    categories: Optional[list[str]] = None,
+    topics: Optional[list[str]] = None,
     config: Optional[BenchmarkConfig] = None,
 ) -> BenchmarkResult:
     """Convenience function to run the benchmark."""
     runner = BenchmarkRunner(config)
-    return await runner.run(models=models, categories=categories)
+    return await runner.run(models=models, topics=topics)

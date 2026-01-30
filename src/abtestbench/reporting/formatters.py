@@ -28,8 +28,7 @@ class ReportFormatter:
                 "model": summary.model,
                 "overall_accuracy": round(summary.overall_accuracy, 4),
                 "numeric_accuracy": round(summary.numeric_accuracy, 4),
-                "explanation_quality": round(summary.explanation_quality, 4),
-                "by_category": {k: round(v, 4) for k, v in summary.by_category.items()},
+                "by_topic": {k: round(v, 4) for k, v in summary.by_topic.items()},
                 "by_difficulty": {k: round(v, 4) for k, v in summary.by_difficulty.items()},
                 "total_questions": summary.total_questions,
                 "successful": summary.successful,
@@ -40,7 +39,7 @@ class ReportFormatter:
             data["detailed_results"][model] = [
                 {
                     "question_id": r.question_id,
-                    "category": r.category,
+                    "topic": r.topic,
                     "difficulty": r.difficulty,
                     "success": r.success,
                     "overall_score": (
@@ -48,9 +47,6 @@ class ReportFormatter:
                     ),
                     "numeric_score": (
                         round(r.evaluation.numeric_score, 4) if r.evaluation else None
-                    ),
-                    "explanation_score": (
-                        round(r.evaluation.explanation_score, 4) if r.evaluation else None
                     ),
                     "elapsed_seconds": round(r.elapsed_seconds, 2),
                     "error": r.error,
@@ -71,27 +67,27 @@ class ReportFormatter:
         ]
 
         # Summary table
-        lines.append("| Model | Overall | Numeric | Explanation | Questions |")
-        lines.append("|-------|---------|---------|-------------|-----------|")
+        lines.append("| Model | Overall | Numeric | Questions |")
+        lines.append("|-------|---------|---------|-----------|")
 
         for model in result.results:
             summary = result.get_summary(model)
             lines.append(
                 f"| {model} | {summary.overall_accuracy:.1%} | "
-                f"{summary.numeric_accuracy:.1%} | {summary.explanation_quality:.1%} | "
+                f"{summary.numeric_accuracy:.1%} | "
                 f"{summary.successful}/{summary.total_questions} |"
             )
 
-        # By Category breakdown
-        lines.append("\n## Results by Category\n")
+        # By Topic breakdown
+        lines.append("\n## Results by Topic\n")
 
         for model in result.results:
             summary = result.get_summary(model)
             lines.append(f"\n### {model}\n")
-            lines.append("| Category | Accuracy |")
-            lines.append("|----------|----------|")
-            for cat, acc in sorted(summary.by_category.items()):
-                lines.append(f"| {cat} | {acc:.1%} |")
+            lines.append("| Topic | Accuracy |")
+            lines.append("|-------|----------|")
+            for topic, acc in sorted(summary.by_topic.items()):
+                lines.append(f"| {topic} | {acc:.1%} |")
 
         # By Difficulty breakdown
         lines.append("\n## Results by Difficulty\n")
@@ -110,13 +106,13 @@ class ReportFormatter:
 
         for model in result.results:
             lines.append(f"\n### {model}\n")
-            lines.append("| Question | Category | Difficulty | Score | Time |")
-            lines.append("|----------|----------|------------|-------|------|")
+            lines.append("| Question | Topic | Difficulty | Score | Time |")
+            lines.append("|----------|-------|------------|-------|------|")
 
             for r in result.results[model]:
                 score = f"{r.evaluation.overall_score:.2f}" if r.evaluation else "ERROR"
                 lines.append(
-                    f"| {r.question_id} | {r.category} | {r.difficulty} | "
+                    f"| {r.question_id} | {r.topic} | {r.difficulty} | "
                     f"{score} | {r.elapsed_seconds:.1f}s |"
                 )
 
@@ -132,11 +128,10 @@ class ReportFormatter:
                 [
                     "model",
                     "question_id",
-                    "category",
+                    "topic",
                     "difficulty",
                     "overall_score",
                     "numeric_score",
-                    "explanation_score",
                     "success",
                     "elapsed_seconds",
                     "error",
@@ -149,11 +144,10 @@ class ReportFormatter:
                         [
                             model,
                             r.question_id,
-                            r.category,
+                            r.topic,
                             r.difficulty,
                             r.evaluation.overall_score if r.evaluation else "",
                             r.evaluation.numeric_score if r.evaluation else "",
-                            r.evaluation.explanation_score if r.evaluation else "",
                             r.success,
                             round(r.elapsed_seconds, 2),
                             r.error or "",
@@ -172,14 +166,13 @@ class ReportFormatter:
             print(f"\n{model}:")
             print(f"  Overall Accuracy:    {summary.overall_accuracy:.1%}")
             print(f"  Numeric Accuracy:    {summary.numeric_accuracy:.1%}")
-            print(f"  Explanation Quality: {summary.explanation_quality:.1%}")
             print(f"  Questions: {summary.successful}/{summary.total_questions}")
             print(f"  Time: {summary.total_time_seconds:.1f}s")
 
-            if summary.by_category:
-                print("\n  By Category:")
-                for cat, acc in sorted(summary.by_category.items()):
-                    print(f"    {cat}: {acc:.1%}")
+            if summary.by_topic:
+                print("\n  By Topic:")
+                for topic, acc in sorted(summary.by_topic.items()):
+                    print(f"    {topic}: {acc:.1%}")
 
             if summary.by_difficulty:
                 print("\n  By Difficulty:")

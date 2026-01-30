@@ -6,8 +6,8 @@ from typing import Optional, Union
 from pydantic import BaseModel, Field
 
 
-class QuestionCategory(str, Enum):
-    """A/B testing question categories."""
+class QuestionTopic(str, Enum):
+    """A/B testing question topics."""
 
     POWER_ANALYSIS = "power_analysis"
     SAMPLE_SIZE = "sample_size"
@@ -34,14 +34,6 @@ class NumericAnswer(BaseModel):
     tolerance_type: str = Field(default="relative", pattern="^(absolute|relative)$")
 
 
-class NumericRangeAnswer(BaseModel):
-    """Expected answer within a numeric range."""
-
-    type: str = "numeric_range"
-    min: float
-    max: float
-
-
 class CategoricalAnswer(BaseModel):
     """Expected categorical answer."""
 
@@ -57,31 +49,25 @@ class BooleanAnswer(BaseModel):
     value: bool
 
 
-ExpectedAnswer = Union[NumericAnswer, NumericRangeAnswer, CategoricalAnswer, BooleanAnswer]
+ExpectedAnswer = Union[NumericAnswer, CategoricalAnswer, BooleanAnswer]
 
 
 class EvaluationConfig(BaseModel):
     """How to evaluate the response."""
 
-    method: str = Field(pattern="^(exact_match|llm_judge|hybrid)$")
-    numeric_weight: float = Field(default=0.7, ge=0.0, le=1.0)
-    explanation_weight: float = Field(default=0.3, ge=0.0, le=1.0)
-    rubric: Optional[str] = None
-    key_concepts: list[str] = Field(default_factory=list)
+    method: str = Field(pattern="^exact_match$")
 
 
 class Question(BaseModel):
     """A single benchmark question."""
 
     id: str = Field(pattern="^[a-z0-9_]+$")
-    category: QuestionCategory
+    topic: QuestionTopic
     difficulty: QuestionDifficulty
-    tags: list[str] = Field(default_factory=list)
     question: str
     context: Optional[str] = None
     expected_answer: ExpectedAnswer
     evaluation: EvaluationConfig
-    hints: Optional[dict] = None
     source: Optional[str] = None
     requires_code: bool = False
 
@@ -91,10 +77,10 @@ class QuestionSet(BaseModel):
 
     questions: list[Question]
 
-    def filter_by_category(self, categories: list[str]) -> "QuestionSet":
-        """Filter questions by category."""
+    def filter_by_topic(self, topics: list[str]) -> "QuestionSet":
+        """Filter questions by topic."""
         return QuestionSet(
-            questions=[q for q in self.questions if q.category.value in categories]
+            questions=[q for q in self.questions if q.topic.value in topics]
         )
 
     def filter_by_difficulty(self, difficulties: list[str]) -> "QuestionSet":

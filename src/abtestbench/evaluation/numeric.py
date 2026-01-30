@@ -3,7 +3,7 @@
 import re
 from typing import Optional
 
-from ..models.question import ExpectedAnswer, NumericAnswer, NumericRangeAnswer
+from ..models.question import ExpectedAnswer, NumericAnswer
 from ..models.response import LLMResponse
 from ..models.result import NumericEvaluation
 
@@ -48,10 +48,6 @@ class NumericEvaluator:
         if isinstance(expected, NumericAnswer):
             return self._evaluate_numeric(extracted, expected)
 
-        # Handle numeric range answer
-        elif isinstance(expected, NumericRangeAnswer):
-            return self._evaluate_range(extracted, expected)
-
         # Unsupported answer type
         return NumericEvaluation(
             correct=False,
@@ -91,37 +87,6 @@ class NumericEvaluator:
             expected_value=expected.value,
             difference=difference,
             within_tolerance=within_tolerance,
-        )
-
-    def _evaluate_range(
-        self, extracted: Optional[float], expected: NumericRangeAnswer
-    ) -> NumericEvaluation:
-        """Evaluate against a numeric range."""
-        if extracted is None:
-            return NumericEvaluation(
-                correct=False,
-                extracted_value=None,
-                expected_value=(expected.min + expected.max) / 2,
-                difference=None,
-                within_tolerance=False,
-            )
-
-        within_range = expected.min <= extracted <= expected.max
-
-        # Calculate distance from range
-        if within_range:
-            difference = 0.0
-        elif extracted < expected.min:
-            difference = expected.min - extracted
-        else:
-            difference = extracted - expected.max
-
-        return NumericEvaluation(
-            correct=within_range,
-            extracted_value=extracted,
-            expected_value=(expected.min + expected.max) / 2,
-            difference=difference,
-            within_tolerance=within_range,
         )
 
     def _extract_number(self, text: str) -> Optional[float]:

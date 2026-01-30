@@ -16,30 +16,19 @@ class NumericEvaluation(BaseModel):
     within_tolerance: bool
 
 
-class JudgeEvaluation(BaseModel):
-    """Result of LLM-as-judge evaluation."""
-
-    score: float = Field(ge=0.0, le=1.0)
-    reasoning: str
-    key_concepts_found: list[str] = Field(default_factory=list)
-    key_concepts_missing: list[str] = Field(default_factory=list)
-
-
 class CompositeEvaluation(BaseModel):
     """Combined evaluation result."""
 
     overall_score: float = Field(ge=0.0, le=1.0)
     numeric_score: float = Field(ge=0.0, le=1.0)
-    explanation_score: float = Field(ge=0.0, le=1.0)
     numeric_evaluation: Optional[NumericEvaluation] = None
-    judge_evaluation: Optional[JudgeEvaluation] = None
 
 
 class QuestionResult(BaseModel):
     """Result for a single question."""
 
     question_id: str
-    category: str
+    topic: str
     difficulty: str
     success: bool
     response: Optional[Any] = None  # LLMResponse
@@ -58,8 +47,7 @@ class ProviderSummary(BaseModel):
     failed: int
     overall_accuracy: float
     numeric_accuracy: float
-    explanation_quality: float
-    by_category: dict[str, float] = Field(default_factory=dict)
+    by_topic: dict[str, float] = Field(default_factory=dict)
     by_difficulty: dict[str, float] = Field(default_factory=dict)
     total_tokens: int = 0
     total_time_seconds: float = 0.0
@@ -79,16 +67,15 @@ class BenchmarkResult(BaseModel):
         # Calculate scores
         overall_scores = [r.evaluation.overall_score for r in successful if r.evaluation]
         numeric_scores = [r.evaluation.numeric_score for r in successful if r.evaluation]
-        explanation_scores = [r.evaluation.explanation_score for r in successful if r.evaluation]
 
-        # By category
-        by_category: dict[str, float] = {}
-        categories = set(r.category for r in successful)
-        for cat in categories:
-            cat_results = [r for r in successful if r.category == cat and r.evaluation]
-            if cat_results:
-                by_category[cat] = sum(r.evaluation.overall_score for r in cat_results) / len(
-                    cat_results
+        # By topic
+        by_topic: dict[str, float] = {}
+        topics = set(r.topic for r in successful)
+        for topic in topics:
+            topic_results = [r for r in successful if r.topic == topic and r.evaluation]
+            if topic_results:
+                by_topic[topic] = sum(r.evaluation.overall_score for r in topic_results) / len(
+                    topic_results
                 )
 
         # By difficulty
@@ -114,10 +101,7 @@ class BenchmarkResult(BaseModel):
             failed=len(results) - len(successful),
             overall_accuracy=sum(overall_scores) / len(overall_scores) if overall_scores else 0.0,
             numeric_accuracy=sum(numeric_scores) / len(numeric_scores) if numeric_scores else 0.0,
-            explanation_quality=(
-                sum(explanation_scores) / len(explanation_scores) if explanation_scores else 0.0
-            ),
-            by_category=by_category,
+            by_topic=by_topic,
             by_difficulty=by_difficulty,
             total_time_seconds=sum(r.elapsed_seconds for r in results),
         )

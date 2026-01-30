@@ -1,0 +1,20 @@
+id = "power_001"
+topic = "power_analysis"
+difficulty = "easy"
+requires_code = true
+
+question = """
+An A/B test for a website button change currently has a 5% click-through rate
+(control). You want to detect a 20% relative improvement (to 6% CTR) with 80%
+power and a 5% significance level. Using a two-proportion z-test, what is the
+minimum sample size needed per group?
+"""
+
+[expected_answer]
+type = "numeric"
+value = 3842
+tolerance = 100
+tolerance_type = "absolute"
+
+[evaluation]
+method = "exact_match"

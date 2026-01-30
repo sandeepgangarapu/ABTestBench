@@ -1,0 +1,23 @@
+id = "ci_003"
+topic = "confidence_intervals"
+difficulty = "hard"
+requires_code = true
+
+question = """
+In an A/B test:
+- Control: 5,000 users, 200 conversions (4.0%)
+- Treatment: 5,000 users, 250 conversions (5.0%)
+
+Calculate the 95% confidence interval for the relative risk (treatment/control).
+
+What is the width of this confidence interval (upper bound minus lower bound)?
+"""
+
+[expected_answer]
+type = "numeric"
+value = 0.41
+tolerance = 0.03
+tolerance_type = "absolute"
+
+[evaluation]
+method = "exact_match"

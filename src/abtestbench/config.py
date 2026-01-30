@@ -35,14 +35,8 @@ class OpenRouterConfig(BaseSettings):
 class EvaluationConfig(BaseSettings):
     """Evaluation configuration."""
 
-    judge_model: str = Field(
-        default="tngtech/deepseek-r1t2-chimera:free", description="Model for LLM-as-judge"
-    )
     numeric_weight: float = Field(
-        default=0.7, ge=0.0, le=1.0, description="Weight for numeric accuracy"
-    )
-    explanation_weight: float = Field(
-        default=0.3, ge=0.0, le=1.0, description="Weight for explanation quality"
+        default=1.0, ge=0.0, le=1.0, description="Weight for numeric accuracy"
     )
 
 
@@ -59,7 +53,7 @@ class BenchmarkConfig(BaseSettings):
     evaluation: EvaluationConfig = Field(default_factory=EvaluationConfig)
 
     # Filtering options
-    categories: Optional[list[str]] = Field(default=None, description="Filter to categories")
+    topics: Optional[list[str]] = Field(default=None, description="Filter to topics")
     difficulties: Optional[list[str]] = Field(default=None, description="Filter to difficulties")
     models: list[str] = Field(
         default=[

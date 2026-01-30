@@ -1,0 +1,21 @@
+id = "effect_002"
+topic = "effect_size"
+difficulty = "medium"
+requires_code = true
+
+question = """
+An A/B test shows:
+- Control conversion rate: 3.2%
+- Treatment conversion rate: 4.0%
+
+Calculate Cohen's h (the effect size for proportions) for this difference.
+"""
+
+[expected_answer]
+type = "numeric"
+value = 0.044
+tolerance = 0.005
+tolerance_type = "absolute"
+
+[evaluation]
+method = "exact_match"

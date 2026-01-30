@@ -1,0 +1,21 @@
+id = "sig_001"
+topic = "significance_testing"
+difficulty = "easy"
+requires_code = true
+
+question = """
+An A/B test shows the following results:
+- Control: 1,000 users, 50 conversions (5.0%)
+- Treatment: 1,000 users, 65 conversions (6.5%)
+
+Calculate the p-value for a two-tailed test of the difference in proportions.
+"""
+
+[expected_answer]
+type = "numeric"
+value = 0.133
+tolerance = 0.02
+tolerance_type = "absolute"
+
+[evaluation]
+method = "exact_match"

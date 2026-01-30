@@ -1,6 +1,5 @@
 """OpenRouter LLM provider using OpenAI-compatible API."""
 
-import asyncio
 import os
 from typing import Any, Optional
 
@@ -8,7 +7,7 @@ import httpx
 from openai import AsyncOpenAI
 
 from ..config import OpenRouterConfig
-from ..models.response import LLMResponse, ToolCall, ToolResult
+from ..models.response import LLMResponse, ToolCall
 
 
 # Default models available on OpenRouter
@@ -74,78 +73,6 @@ class OpenRouterProvider:
 
         return self._parse_response(response, model)
 
-    async def complete_with_tool_loop(
-        self,
-        messages: list[dict[str, Any]],
-        model: str,
-        tools: list[dict[str, Any]],
-        tool_executor: "ToolExecutor",
-        system_prompt: Optional[str] = None,
-        max_iterations: int = 10,
-    ) -> LLMResponse:
-        """Complete with automatic tool execution loop."""
-        current_messages = messages.copy()
-        all_tool_results: list[ToolResult] = []
-
-        for _ in range(max_iterations):
-            response = await self.complete(
-                messages=current_messages,
-                model=model,
-                tools=tools,
-                system_prompt=system_prompt,
-            )
-
-            if not response.tool_calls:
-                response.all_tool_results = all_tool_results
-                return response
-
-            # Add assistant message with tool calls
-            assistant_msg: dict[str, Any] = {"role": "assistant", "content": response.content or ""}
-
-            if response.tool_calls:
-                assistant_msg["tool_calls"] = [
-                    {
-                        "id": tc.id,
-                        "type": "function",
-                        "function": {"name": tc.name, "arguments": str(tc.arguments)},
-                    }
-                    for tc in response.tool_calls
-                ]
-
-            current_messages.append(assistant_msg)
-
-            # Execute each tool call
-            for tool_call in response.tool_calls:
-                result = await tool_executor.execute(tool_call.name, tool_call.arguments)
-
-                tool_result = ToolResult(
-                    tool_name=tool_call.name,
-                    tool_input=tool_call.arguments,
-                    output=result.output if hasattr(result, "output") else str(result),
-                    success=result.success if hasattr(result, "success") else True,
-                    error=result.error if hasattr(result, "error") else None,
-                )
-                all_tool_results.append(tool_result)
-
-                # Add tool result message
-                current_messages.append(
-                    {
-                        "role": "tool",
-                        "tool_call_id": tool_call.id,
-                        "content": tool_result.output,
-                    }
-                )
-
-        # Max iterations reached
-        final_response = await self.complete(
-            messages=current_messages,
-            model=model,
-            tools=None,  # No more tools
-            system_prompt=system_prompt,
-        )
-        final_response.all_tool_results = all_tool_results
-        return final_response
-
     def _parse_response(self, response: Any, model: str) -> LLMResponse:
         """Parse OpenAI-format response into LLMResponse."""
         choice = response.choices[0]
@@ -184,34 +111,3 @@ class OpenRouterProvider:
             },
             stop_reason=choice.finish_reason,
         )
-
-
-class ToolExecutor:
-    """Executes tools called by the LLM."""
-
-    def __init__(self):
-        self.tools: dict[str, Any] = {}
-
-    def register(self, name: str, handler: Any) -> None:
-        """Register a tool handler."""
-        self.tools[name] = handler
-
-    async def execute(self, name: str, arguments: dict[str, Any]) -> Any:
-        """Execute a tool by name."""
-        if name not in self.tools:
-            from ..models.response import ToolResult
-
-            return ToolResult(
-                tool_name=name,
-                tool_input=arguments,
-                output=f"Unknown tool: {name}",
-                success=False,
-                error=f"Tool '{name}' not found",
-            )
-
-        handler = self.tools[name]
-
-        if asyncio.iscoroutinefunction(handler.execute):
-            return await handler.execute(arguments)
-        else:
-            return handler.execute(arguments)

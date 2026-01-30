@@ -1,0 +1,20 @@
+id = "sample_size_001"
+topic = "sample_size"
+difficulty = "easy"
+requires_code = true
+
+question = """
+You want to estimate the conversion rate of a landing page with a 95%
+confidence interval that has a margin of error of no more than 2 percentage
+points. Assuming you have no prior estimate of the conversion rate, what
+minimum sample size do you need?
+"""
+
+[expected_answer]
+type = "numeric"
+value = 2401
+tolerance = 50
+tolerance_type = "absolute"
+
+[evaluation]
+method = "exact_match"

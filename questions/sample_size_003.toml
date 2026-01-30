@@ -1,0 +1,19 @@
+id = "sample_size_003"
+topic = "sample_size"
+difficulty = "hard"
+requires_code = true
+
+question = """
+You're testing a new checkout flow. Historical data shows average order value
+is $85 with a standard deviation of $45. You want to detect a $5 increase with
+90% power at α = 0.05 (two-tailed). What sample size per group is needed?
+"""
+
+[expected_answer]
+type = "numeric"
+value = 1714
+tolerance = 100
+tolerance_type = "absolute"
+
+[evaluation]
+method = "exact_match"

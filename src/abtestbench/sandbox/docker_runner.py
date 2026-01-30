@@ -94,9 +94,8 @@ except Exception as e:
 
         return None
 
-    async def execute(self, arguments: dict) -> ExecutionResult:
+    async def execute(self, code: str) -> ExecutionResult:
         """Execute Python code locally."""
-        code = arguments.get("code", "")
 
         if not code.strip():
             return ExecutionResult(
@@ -266,9 +265,8 @@ except Exception as e:
 
         return None
 
-    async def execute(self, arguments: dict) -> ExecutionResult:
+    async def execute(self, code: str) -> ExecutionResult:
         """Execute Python code in Docker sandbox."""
-        code = arguments.get("code", "")
 
         if not code.strip():
             return ExecutionResult(
@@ -361,34 +359,3 @@ except Exception as e:
                 output="",
                 error=f"Container error: {str(e)}",
             )
-
-
-# Tool definition for LLM tool use
-PYTHON_TOOL_DEFINITION = {
-    "type": "function",
-    "function": {
-        "name": "execute_python",
-        "description": """Execute Python code for statistical calculations.
-
-Available libraries: numpy, scipy, statsmodels, pandas, math
-
-Use this tool to:
-- Calculate sample sizes and statistical power
-- Run statistical tests (t-tests, z-tests, chi-square)
-- Compute confidence intervals
-- Calculate effect sizes (Cohen's d, Cohen's h)
-- Perform numerical computations
-
-The code should print the final result.""",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "description": "Python code to execute. Print your results.",
-                }
-            },
-            "required": ["code"],
-        },
-    },
-}

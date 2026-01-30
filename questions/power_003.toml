@@ -1,0 +1,19 @@
+id = "power_003"
+topic = "power_analysis"
+difficulty = "hard"
+requires_code = true
+
+question = """
+You're planning an A/B test with a baseline conversion rate of 12%. You have
+capacity for 50,000 users per group. What is the minimum detectable effect (MDE)
+as a relative percentage improvement, with 80% power at α = 0.05?
+"""
+
+[expected_answer]
+type = "numeric"
+value = 5.8
+tolerance = 0.5
+tolerance_type = "absolute"
+
+[evaluation]
+method = "exact_match"

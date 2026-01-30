@@ -11,9 +11,7 @@ ABTestBench measures how well language models understand A/B testing statistical
 - **Confidence Intervals** - Proportion CIs, difference in means
 - **Effect Size** - Cohen's d, Cohen's h, relative lift
 
-LLMs are given access to Python code execution and evaluated using a hybrid scoring system:
-- **Numeric accuracy** (70%) - Exact match with tolerance
-- **Explanation quality** (30%) - LLM-as-judge evaluation
+LLMs are given access to Python code execution and evaluated using exact match scoring against verifiable expected answers.
 
 ## Setup
 
@@ -95,9 +93,7 @@ Questions are stored in `questions/*.yaml`. Each question includes:
     tolerance: 100
     tolerance_type: absolute
   evaluation:
-    method: hybrid
-    numeric_weight: 0.7
-    explanation_weight: 0.3
+    method: exact_match
     key_concepts: ["effect size", "power"]
   requires_code: true
 ```
@@ -111,7 +107,7 @@ ABTestBench/
 │   ├── models/            # Data models (Question, Response, Result)
 │   ├── providers/         # OpenRouter LLM provider
 │   ├── sandbox/           # Docker-based Python execution
-│   ├── evaluation/        # Numeric + LLM-as-judge evaluators
+│   ├── evaluation/        # Exact match evaluator
 │   ├── harness/           # Question loader, benchmark runner
 │   └── reporting/         # JSON/Markdown/CSV formatters
 ├── questions/             # YAML question bank

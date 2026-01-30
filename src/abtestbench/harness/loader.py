@@ -1,81 +1,52 @@
-"""Question loader from YAML files."""
+"""Question loader from TOML files."""
 
-import json
+import tomllib
 from pathlib import Path
 from typing import Iterator, Optional
-
-import yaml
-from jsonschema import ValidationError, validate
 
 from ..models.question import Question, QuestionSet
 
 
 class QuestionLoader:
-    """Load and validate benchmark questions from YAML files."""
+    """Load and validate benchmark questions from individual TOML files."""
 
-    def __init__(
-        self,
-        questions_dir: Path,
-        schema_path: Optional[Path] = None,
-    ):
+    def __init__(self, questions_dir: Path):
         self.questions_dir = Path(questions_dir)
-        self.schema = self._load_schema(schema_path or self.questions_dir / "schema.json")
-
-    def _load_schema(self, path: Path) -> dict:
-        """Load the JSON schema for validation."""
-        if not path.exists():
-            return {}  # Skip validation if no schema
-
-        with open(path) as f:
-            return json.load(f)
 
     def load_all(
         self,
-        categories: Optional[list[str]] = None,
+        topics: Optional[list[str]] = None,
         difficulties: Optional[list[str]] = None,
-        tags: Optional[list[str]] = None,
     ) -> QuestionSet:
         """Load all questions with optional filtering."""
         questions = []
 
-        for file_path in self.questions_dir.glob("*.yaml"):
-            questions.extend(self._load_file(file_path))
+        for file_path in self.questions_dir.glob("*.toml"):
+            question = self._load_file(file_path)
+            if question:
+                questions.append(question)
 
         # Apply filters
-        if categories:
-            questions = [q for q in questions if q.category.value in categories]
+        if topics:
+            questions = [q for q in questions if q.topic.value in topics]
         if difficulties:
             questions = [q for q in questions if q.difficulty.value in difficulties]
-        if tags:
-            questions = [q for q in questions if any(t in q.tags for t in tags)]
 
         return QuestionSet(questions=questions)
 
-    def _load_file(self, path: Path) -> list[Question]:
-        """Load questions from a single YAML file."""
-        with open(path) as f:
-            data = yaml.safe_load(f)
+    def _load_file(self, path: Path) -> Optional[Question]:
+        """Load a single question from a TOML file."""
+        with open(path, "rb") as f:
+            data = tomllib.load(f)
 
-        if not data or "questions" not in data:
-            return []
+        if not data:
+            return None
 
-        questions = []
-        for q_data in data.get("questions", []):
-            # Validate against schema if available
-            if self.schema:
-                try:
-                    validate(instance=q_data, schema=self.schema)
-                except ValidationError as e:
-                    print(f"Warning: Invalid question {q_data.get('id')}: {e.message}")
-                    continue
-
-            try:
-                questions.append(Question(**q_data))
-            except Exception as e:
-                print(f"Warning: Failed to parse question {q_data.get('id')}: {e}")
-                continue
-
-        return questions
+        try:
+            return Question(**data)
+        except Exception as e:
+            print(f"Warning: Failed to parse question from {path.name}: {e}")
+            return None
 
     def iter_questions(self, **filters) -> Iterator[Question]:
         """Iterate over questions with optional filtering."""
@@ -89,27 +60,27 @@ class QuestionLoader:
                 return question
         return None
 
-    def get_categories(self) -> list[str]:
-        """Get all unique categories."""
+    def get_topics(self) -> list[str]:
+        """Get all unique topics."""
         questions = self.load_all()
-        return list(set(q.category.value for q in questions.questions))
+        return list(set(q.topic.value for q in questions.questions))
 
     def get_statistics(self) -> dict:
         """Get statistics about the question bank."""
         questions = self.load_all()
 
-        by_category = {}
+        by_topic = {}
         by_difficulty = {}
 
         for q in questions.questions:
-            cat = q.category.value
+            topic = q.topic.value
             diff = q.difficulty.value
 
-            by_category[cat] = by_category.get(cat, 0) + 1
+            by_topic[topic] = by_topic.get(topic, 0) + 1
             by_difficulty[diff] = by_difficulty.get(diff, 0) + 1
 
         return {
             "total": len(questions),
-            "by_category": by_category,
+            "by_topic": by_topic,
             "by_difficulty": by_difficulty,
         }

@@ -1,0 +1,27 @@
+id = "effect_003"
+topic = "effect_size"
+difficulty = "hard"
+requires_code = true
+
+question = """
+Your A/B test shows a statistically significant result (p = 0.02):
+- Control: 2.1% conversion rate
+- Treatment: 2.3% conversion rate
+
+The test had n = 100,000 per group. Your business requires at least a 15%
+relative improvement to justify the engineering cost of the change.
+
+1. Calculate the relative lift as a percentage.
+2. Is this result practically significant for the business?
+
+Answer with the relative lift percentage.
+"""
+
+[expected_answer]
+type = "numeric"
+value = 9.52
+tolerance = 0.5
+tolerance_type = "absolute"
+
+[evaluation]
+method = "exact_match"

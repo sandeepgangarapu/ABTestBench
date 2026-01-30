@@ -1,0 +1,20 @@
+id = "ci_001"
+topic = "confidence_intervals"
+difficulty = "easy"
+requires_code = true
+
+question = """
+An A/B test treatment group had 150 conversions out of 2,000 users. Calculate
+the 95% confidence interval for the true conversion rate using the Wald method.
+
+What is the width of this confidence interval (upper bound minus lower bound)?
+"""
+
+[expected_answer]
+type = "numeric"
+value = 0.024
+tolerance = 0.003
+tolerance_type = "absolute"
+
+[evaluation]
+method = "exact_match"
